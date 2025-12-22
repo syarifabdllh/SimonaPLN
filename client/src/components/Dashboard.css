@@ -1,0 +1,259 @@
+/* ============================================
+   PROFESSIONAL DASHBOARD STYLING
+   ============================================ */
+
+.dashboard-container {
+    width: 100%;
+    padding: 0;
+}
+
+/* Header Section dengan spacing yang lebih baik */
+.dashboard-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #E5E7EB;
+}
+
+.dashboard-title h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1F2937;
+    letter-spacing: -0.025em;
+}
+
+.dashboard-title p {
+    margin: 0;
+    color: #6B7280;
+    font-size: 0.95rem;
+}
+
+/* Year Selector dengan styling profesional */
+.year-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.year-selector label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.95rem;
+}
+
+.year-selector select {
+    padding: 0.625rem 2.5rem 0.625rem 1rem;
+    border: 2px solid #D1D5DB;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1F2937;
+    background-color: #FFFFFF;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23374151' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+}
+
+.year-selector select:hover {
+    border-color: #9CA3AF;
+}
+
+.year-selector select:focus {
+    outline: none;
+    border-color: #005A9C;
+    box-shadow: 0 0 0 3px rgba(0, 90, 156, 0.1);
+}
+
+/* Grid Layout dengan spacing konsisten */
+.summary-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.75rem;
+}
+
+/* Card dengan shadow dan hover effect profesional */
+.summary-chart-card {
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    border: 1px solid #F3F4F6;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.summary-chart-card:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+}
+
+/* Title card dengan spacing lebih baik */
+.summary-chart-card h3 {
+    margin: 0 0 1.75rem 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Chart wrapper dengan ukuran optimal */
+.summary-chart-wrapper {
+    position: relative;
+    height: 240px;
+    margin: 0 auto 1.75rem auto;
+    max-width: 280px;
+}
+
+/* Legend dengan alignment yang lebih baik */
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    color: #4B5563;
+    font-weight: 500;
+}
+
+.legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+/* Summary values dengan visual hierarchy */
+.chart-summary-values {
+    border-top: 2px solid #F3F4F6;
+    padding-top: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.9rem;
+}
+
+.chart-summary-values span {
+    color: #374151;
+    font-weight: 600;
+}
+
+.chart-summary-values span:first-child {
+    color: #6B7280;
+    font-weight: 500;
+}
+
+/* Status Messages dengan styling profesional */
+.status-message {
+    text-align: center;
+    font-size: 1.125rem;
+    padding: 4rem 2rem;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+.status-message.error {
+    color: #DC2626;
+    background-color: #FEF2F2;
+    border: 1px solid #FEE2E2;
+    border-radius: 8px;
+    margin: 2rem;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .summary-charts-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .dashboard-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+    
+    .dashboard-title h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+    .summary-charts-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    
+    .dashboard-title h2 {
+        font-size: 1.5rem;
+    }
+    
+    .dashboard-title p {
+        font-size: 0.875rem;
+    }
+    
+    .summary-chart-card {
+        padding: 1.5rem;
+    }
+    
+    .summary-chart-card h3 {
+        font-size: 0.8rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .chart-legend {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: center;
+    }
+    
+    .chart-summary-values {
+        font-size: 0.85rem;
+    }
+    
+    .year-selector {
+        width: 100%;
+    }
+    
+    .year-selector select {
+        flex: 1;
+    }
+}
+
+/* Extra Small Mobile */
+@media (max-width: 375px) {
+    .dashboard-container {
+        padding: 0;
+    }
+    
+    .dashboard-title {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+    }
+    
+    .summary-chart-card {
+        padding: 1.25rem;
+    }
+    
+    .chart-summary-values span {
+        font-size: 0.8rem;
+    }
+}

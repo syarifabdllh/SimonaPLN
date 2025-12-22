@@ -1,0 +1,83 @@
+/* Container utama yang akan menengahkan kartu profil */
+.profile-page-container {
+    width: 100%;
+    display: flex;
+    justify-content: center; /* Menengahkan secara horizontal */
+    align-items: flex-start; /* Mulai dari atas */
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+/* Kartu utama untuk menampilkan profil */
+.profile-display-card {
+    width: 100%;
+    max-width: 450px; /* Lebar kartu */
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden; /* Agar border-radius bekerja dengan header */
+}
+
+.profile-card-header {
+    background-color: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.profile-card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.profile-card-body {
+    padding: 2rem;
+}
+
+/* Placeholder untuk avatar/foto profil */
+.profile-avatar-placeholder {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.profile-avatar-icon {
+    font-size: 120px; /* Ukuran ikon placeholder */
+    color: #e0e0e0; /* Warna abu-abu muda */
+}
+
+/* Nama pengguna */
+.profile-name {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 2rem;
+}
+
+/* Daftar detail profil */
+.profile-details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Jarak antar item */
+}
+
+.profile-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Jarak antara ikon dan teks */
+    font-size: 1rem;
+    color: #555;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.profile-detail-item:last-child {
+    border-bottom: none; /* Hapus garis di item terakhir */
+}
+
+.detail-icon {
+    color: #005A9C; /* Warna biru PLN untuk ikon */
+    font-size: 1.2rem;
+    flex-shrink: 0; /* Mencegah ikon menyusut */
+}

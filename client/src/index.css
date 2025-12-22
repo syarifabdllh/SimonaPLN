@@ -1,0 +1,14 @@
+/* Hapus padding dari body dan pastikan tidak ada margin default */
+body, html, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Pengaturan font dan warna latar belakang global bisa tetap di sini */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f0f2f5; /* Warna ini akan menjadi latar belakang di luar kartu login */
+  color: #333;
+}
