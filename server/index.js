@@ -147,29 +147,50 @@ app.get('/api/master/anggaran', protect, async (req, res) => {
 // --- Rute Data Anggaran (Dashboard & Daftar) ---
 app.get('/api/anggaran', protect, async (req, res) => {
     try {
-        // Ambil parameter tahun dari query string, default ke tahun sekarang
-        const tahun = req.query.tahun || new Date().getFullYear();
+        const tahun = req.query.tahun;
         
-        const query = `
-            SELECT a.kode_skko, a.nama_program, a.pagu_anggaran, a.jenis_anggaran,
+        let query = `
+            SELECT a.kode_skko, a.nama_program, a.pagu_anggaran, a.jenis_anggaran, a.tahun_anggaran,
                    COALESCE(SUM(k.nilai_kontrak), 0) AS total_realisasi, 
                    (a.pagu_anggaran - COALESCE(SUM(k.nilai_kontrak), 0)) AS sisa_anggaran, 
                    (COALESCE(SUM(k.nilai_kontrak), 0) / a.pagu_anggaran * 100) AS persentase_penyerapan 
             FROM anggaran a 
             LEFT JOIN pengajuan p ON a.id = p.id_anggaran AND p.status NOT IN ('Draft', 'Ditolak Manager') 
-            LEFT JOIN kontrak k ON p.id = k.id_pengajuan 
-            WHERE a.tahun_anggaran = ? 
-            GROUP BY a.id, a.kode_skko, a.nama_program, a.pagu_anggaran, a.jenis_anggaran
-            ORDER BY a.nama_program;
+            LEFT JOIN kontrak k ON p.id = k.id_pengajuan
         `;
         
-        const [rows] = await pool.query(query, [tahun]);
+        let params = [];
+        
+        if (tahun) {
+            query += ` WHERE a.tahun_anggaran = ?`;
+            params.push(tahun);
+        }
+        
+        query += ` GROUP BY a.id, a.kode_skko, a.nama_program, a.pagu_anggaran, a.jenis_anggaran, a.tahun_anggaran
+                   ORDER BY a.tahun_anggaran DESC, a.nama_program;`;
+        
+        const [rows] = await pool.query(query, params);
         res.json(rows);
     } catch (error) {
         console.error("Gagal mengambil data anggaran:", error);
         res.status(500).json({ message: "Terjadi kesalahan di server." });
     }
 });
+
+// Endpoint years sudah benar, tetap pakai yang kamu punya!
+app.get('/api/anggaran/years', protect, async (req, res) => {
+    try {
+        const [rows] = await pool.query(
+            'SELECT DISTINCT tahun_anggaran FROM anggaran ORDER BY tahun_anggaran DESC'
+        );
+        const years = rows.map(row => row.tahun_anggaran);
+        res.json(years);
+    } catch (error) {
+        console.error("Gagal mengambil daftar tahun:", error);
+        res.status(500).json({ message: "Terjadi kesalahan di server." });
+    }
+});
+
 
 app.post('/api/anggaran', protect, authorize('KKU', 'Admin'), async (req, res) => {
     const { 

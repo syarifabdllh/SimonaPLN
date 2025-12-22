@@ -7,18 +7,38 @@ const CreateAnggaranPage = () => {
         nomor_prk: '',
         nomor_wbs: '',
         nomor_io: '',
-        kode_skko: '', // Dulu kode_skko, sekarang kita sesuaikan
+        kode_skko: '',
         nama_program: '',
         pagu_anggaran: '',
         tahun_anggaran: new Date().getFullYear(),
         jenis_anggaran: 'Rutin'
     });
+    const [paguFormatted, setPaguFormatted] = useState(''); // State untuk tampilan dengan titik
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    // Handler khusus untuk Pagu Anggaran dengan format ribuan
+    const handlePaguChange = (e) => {
+        const value = e.target.value;
+        
+        // Hapus semua karakter selain angka
+        const numericValue = value.replace(/\D/g, '');
+        
+        // Update nilai asli (tanpa titik) untuk dikirim ke backend
+        setFormData({ ...formData, pagu_anggaran: numericValue });
+        
+        // Format dengan titik untuk tampilan
+        if (numericValue) {
+            const formatted = new Intl.NumberFormat('id-ID').format(numericValue);
+            setPaguFormatted(formatted);
+        } else {
+            setPaguFormatted('');
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -49,41 +69,101 @@ const CreateAnggaranPage = () => {
             <form onSubmit={handleSubmit} className="form-card">
                 <h2>Input Pagu Anggaran Baru (SKKO)</h2>
                 {error && <p className="error-message">{error}</p>}
+                
                 <div className="input-group">
                     <label htmlFor="nama_program">Uraian Pekerjaan / Nama Program</label>
-                    <input type="text" name="nama_program" value={formData.nama_program} onChange={handleChange} required />
+                    <input 
+                        type="text" 
+                        name="nama_program" 
+                        value={formData.nama_program} 
+                        onChange={handleChange} 
+                        required 
+                    />
                 </div>
+                
                 <div className="input-group">
                     <label htmlFor="nomor_prk">No PRK</label>
-                    <input type="text" name="nomor_prk" value={formData.nomor_prk} onChange={handleChange} required />
+                    <input 
+                        type="text" 
+                        name="nomor_prk" 
+                        value={formData.nomor_prk} 
+                        onChange={handleChange} 
+                        required 
+                    />
                 </div>
+                
                 <div className="input-group">
                     <label htmlFor="nomor_wbs">No WBS</label>
-                    <input type="text" name="nomor_wbs" value={formData.nomor_wbs} onChange={handleChange} />
+                    <input 
+                        type="text" 
+                        name="nomor_wbs" 
+                        value={formData.nomor_wbs} 
+                        onChange={handleChange} 
+                    />
                 </div>
+                
                 <div className="input-group">
                     <label htmlFor="nomor_io">No IO</label>
-                    <input type="text" name="nomor_io" value={formData.nomor_io} onChange={handleChange} />
+                    <input 
+                        type="text" 
+                        name="nomor_io" 
+                        value={formData.nomor_io} 
+                        onChange={handleChange} 
+                    />
                 </div>
+                
                 <div className="input-group">
                     <label htmlFor="kode_skko">Kode SKKO (digunakan sebagai ID unik internal)</label>
-                    <input type="text" name="kode_skko" value={formData.kode_skko} onChange={handleChange} required />
+                    <input 
+                        type="text" 
+                        name="kode_skko" 
+                        value={formData.kode_skko} 
+                        onChange={handleChange} 
+                        required 
+                    />
                 </div>
+                
                 <div className="input-group">
                     <label htmlFor="pagu_anggaran">Pagu Anggaran (Rp)</label>
-                    <input type="number" name="pagu_anggaran" value={formData.pagu_anggaran} onChange={handleChange} required />
+                    <input 
+                        type="text" 
+                        name="pagu_anggaran" 
+                        value={paguFormatted} 
+                        onChange={handlePaguChange}
+                        placeholder="Contoh: 1.000.000"
+                        required 
+                    />
+                    {paguFormatted && (
+                        <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>
+                            Rp {paguFormatted}
+                        </small>
+                    )}
                 </div>
+                
                 <div className="input-group">
                     <label htmlFor="tahun_anggaran">Tahun Anggaran</label>
-                    <input type="number" name="tahun_anggaran" value={formData.tahun_anggaran} onChange={handleChange} required />
+                    <input 
+                        type="number" 
+                        name="tahun_anggaran" 
+                        value={formData.tahun_anggaran} 
+                        onChange={handleChange} 
+                        required 
+                    />
                 </div>
+                
                 <div className="input-group">
                     <label htmlFor="jenis_anggaran">Jenis Anggaran</label>
-                    <select name="jenis_anggaran" value={formData.jenis_anggaran} onChange={handleChange} required>
+                    <select 
+                        name="jenis_anggaran" 
+                        value={formData.jenis_anggaran} 
+                        onChange={handleChange} 
+                        required
+                    >
                         <option value="Rutin">Rutin</option>
                         <option value="Non-Rutin">Non-Rutin</option>
                     </select>
                 </div>
+                
                 <button type="submit" className="form-button" disabled={loading}>
                     {loading ? 'Menyimpan...' : 'Simpan Pagu Anggaran'}
                 </button>

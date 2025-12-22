@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import './ProfilePage.css'; // Kita akan menulis ulang CSS ini
+import './ProfilePage.css';
 
-// Impor ikon-ikon yang akan kita gunakan
 import { 
     FaUserCircle, 
     FaBriefcase, 
@@ -46,7 +45,6 @@ const ProfilePage = () => {
     if (error) return <div className="status-message error">{error}</div>;
     if (!profile) return <div className="status-message">Profil tidak ditemukan.</div>;
 
-    // --- BAGIAN TAMPILAN YANG DIROMBAK TOTAL ---
     return (
         <div className="profile-page-container">
             <div className="profile-display-card">
@@ -63,27 +61,39 @@ const ProfilePage = () => {
                     <h2 className="profile-name">{profile.nama_lengkap}</h2>
 
                     <div className="profile-details-list">
+                        {/* Jabatan - Selalu tampil */}
                         <div className="profile-detail-item">
                             <FaBriefcase className="detail-icon" />
                             <span>{profile.jabatan}</span>
                         </div>
-                        <div className="profile-detail-item">
-                            <FaBuilding className="detail-icon" />
-                            <span>{profile.unit || 'Unit belum diatur'}</span>
-                        </div>
+
+                        {/* Unit - Hanya tampil jika ada */}
+                        {profile.unit && profile.unit !== 'N/A' && (
+                            <div className="profile-detail-item">
+                                <FaBuilding className="detail-icon" />
+                                <span>{profile.unit}</span>
+                            </div>
+                        )}
+
+                        {/* Lokasi - Selalu tampil (hardcode UP2B Bali) */}
                         <div className="profile-detail-item">
                             <FaMapMarkerAlt className="detail-icon" />
                             <span>UP2B Bali</span>
                         </div>
+
+                        {/* Email - Selalu tampil */}
                         <div className="profile-detail-item">
                             <FaEnvelope className="detail-icon" />
                             <span>{profile.email}</span>
                         </div>
-                        <div className="profile-detail-item">
-                            <FaPhone className="detail-icon" />
-                            {/* Catatan: No. Telp belum ada di database, ini hanya placeholder visual */}
-                            <span>No. Telp belum tersedia</span>
-                        </div>
+
+                        {/* No. Telp - Hanya tampil jika ada di database */}
+                        {profile.no_telp && (
+                            <div className="profile-detail-item">
+                                <FaPhone className="detail-icon" />
+                                <span>{profile.no_telp}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 

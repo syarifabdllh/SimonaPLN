@@ -68,11 +68,43 @@ function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-    const availableYears = [2025, 2024];
+    const [availableYears, setAvailableYears] = useState([]);
     const [overallData, setOverallData] = useState({ data: {}, pagu: 0, realisasi: 0 });
     const [routineData, setRoutineData] = useState({ data: {}, pagu: 0, realisasi: 0 });
     const [nonRoutineData, setNonRoutineData] = useState({ data: {}, pagu: 0, realisasi: 0 });
 
+    // Fetch daftar tahun
+    useEffect(() => {
+        const fetchYears = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3001/api/anggaran/years', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const years = await response.json();
+                    if (years.length > 0) {
+                        setAvailableYears(years);
+                        if (!years.includes(selectedYear)) {
+                            setSelectedYear(years[0]);
+                        }
+                    } else {
+                        setAvailableYears([new Date().getFullYear()]);
+                    }
+                }
+            } catch (err) {
+                console.error("Gagal memuat tahun:", err);
+                setAvailableYears([new Date().getFullYear()]);
+            }
+        };
+        
+        if (user && ['Manager', 'KKU', 'Admin'].includes(user.jabatan)) {
+            fetchYears();
+        }
+    }, [user]);
+
+    // Fetch data anggaran
     useEffect(() => {
         if (user && ['Manager', 'KKU', 'Admin'].includes(user.jabatan)) {
             const fetchData = async () => {
@@ -99,7 +131,7 @@ function Dashboard() {
                             labels: ['Realisasi', 'Sisa Anggaran'],
                             datasets: [{ 
                                 data: [totalRealisasi, Math.max(0, totalPagu - totalRealisasi)], 
-                                backgroundColor: ['#005A9C', '#B8E986'],
+                                backgroundColor: ['#0066cc', '#e0e0e0'],
                                 borderWidth: 0
                             }]
                         },
@@ -116,7 +148,7 @@ function Dashboard() {
                             labels: ['Realisasi', 'Sisa Anggaran'],
                             datasets: [{ 
                                 data: [routineRealisasi, Math.max(0, routinePagu - routineRealisasi)], 
-                                backgroundColor: ['#50E3C2', '#E0E0E0'],
+                                backgroundColor: ['#0066cc', '#e0e0e0'],
                                 borderWidth: 0
                             }]
                         },
@@ -133,7 +165,7 @@ function Dashboard() {
                             labels: ['Realisasi', 'Sisa Anggaran'],
                             datasets: [{ 
                                 data: [nonRoutineRealisasi, Math.max(0, nonRoutinePagu - nonRoutineRealisasi)], 
-                                backgroundColor: ['#F5A623', '#E0E0E0'],
+                                backgroundColor: ['#0066cc', '#e0e0e0'],
                                 borderWidth: 0
                             }]
                         },
@@ -166,7 +198,11 @@ function Dashboard() {
                     </div>
                     <div className="year-selector">
                         <label htmlFor="year-select">Tahun Anggaran:</label>
-                        <select id="year-select" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+                        <select 
+                            id="year-select" 
+                            value={selectedYear} 
+                            onChange={e => setSelectedYear(parseInt(e.target.value))}
+                        >
                             {availableYears.map(year => <option key={year} value={year}>{year}</option>)}
                         </select>
                     </div>
