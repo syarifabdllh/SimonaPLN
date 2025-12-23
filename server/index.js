@@ -130,19 +130,34 @@ app.get('/api/profile', protect, (req, res) => {
 });
 
 // --- Rute Data Master ---
+// Endpoint untuk dropdown di form pengajuan
 app.get('/api/master/anggaran', protect, async (req, res) => {
     try {
-        // --- PERBAIKAN DI SINI: Tambahkan 'jenis_anggaran' ke query SELECT ---
-        const [rows] = await pool.query(
-            'SELECT id, nama_program, kode_skko, jenis_anggaran FROM anggaran WHERE tahun_anggaran = ? ORDER BY nama_program', 
-            [new Date().getFullYear()]
-        );
+        const tahun = req.query.tahun; // Opsional
+        
+        let query = `
+            SELECT id, kode_skko, nama_program, jenis_anggaran, pagu_anggaran, tahun_anggaran
+            FROM anggaran
+        `;
+        
+        let params = [];
+        
+        // Filter tahun HANYA jika ada parameter
+        if (tahun) {
+            query += ` WHERE tahun_anggaran = ?`;
+            params.push(tahun);
+        }
+        
+        query += ` ORDER BY tahun_anggaran DESC, jenis_anggaran, nama_program;`;
+        
+        const [rows] = await pool.query(query, params);
         res.json(rows);
     } catch (error) {
-        console.error("Gagal mengambil data master anggaran:", error);
-        res.status(500).json({ message: 'Gagal mengambil data anggaran' });
+        console.error("Gagal mengambil master anggaran:", error);
+        res.status(500).json({ message: "Terjadi kesalahan di server." });
     }
 });
+
 
 // --- Rute Data Anggaran (Dashboard & Daftar) ---
 app.get('/api/anggaran', protect, async (req, res) => {
@@ -190,6 +205,105 @@ app.get('/api/anggaran/years', protect, async (req, res) => {
         res.status(500).json({ message: "Terjadi kesalahan di server." });
     }
 });
+
+app.get('/api/dashboard/kontrak', protect, async (req, res) => {
+    try {
+        const tahun = req.query.tahun;
+        console.log(`📊 Fetching kontrak data for year: ${tahun}`);
+        
+        // Query 1: Total Pagu
+        let paguQuery = `SELECT COALESCE(SUM(pagu_anggaran), 0) AS totalPagu FROM anggaran`;
+        let paguParams = [];
+        if (tahun) {
+            paguQuery += ` WHERE tahun_anggaran = ?`;
+            paguParams.push(tahun);
+        }
+        const [paguResult] = await pool.query(paguQuery, paguParams);
+        const totalPagu = parseFloat(paguResult[0].totalPagu || 0);
+        
+        // Query 2: Total Terkontrak (SEMUA kontrak)
+        let terkontrakQuery = `
+            SELECT COALESCE(SUM(k.nilai_kontrak), 0) AS terkontrak
+            FROM kontrak k
+            INNER JOIN pengajuan p ON k.id_pengajuan = p.id
+            INNER JOIN anggaran a ON p.id_anggaran = a.id
+            WHERE k.nilai_kontrak IS NOT NULL
+        `;
+        let terkontrakParams = [];
+        if (tahun) {
+            terkontrakQuery += ` AND a.tahun_anggaran = ?`;
+            terkontrakParams.push(tahun);
+        }
+        const [terkontrakResult] = await pool.query(terkontrakQuery, terkontrakParams);
+        const terkontrak = parseFloat(terkontrakResult[0].terkontrak || 0);
+        
+        // Query 3: On Progress (Berjalan + On Progress)
+        let progressQuery = `
+            SELECT COALESCE(SUM(k.nilai_kontrak), 0) AS onProgress
+            FROM kontrak k
+            INNER JOIN pengajuan p ON k.id_pengajuan = p.id
+            INNER JOIN anggaran a ON p.id_anggaran = a.id
+            WHERE k.status_kontrak IN ('Berjalan', 'On Progress')
+              AND k.nilai_kontrak IS NOT NULL
+        `;
+        let progressParams = [];
+        if (tahun) {
+            progressQuery += ` AND a.tahun_anggaran = ?`;
+            progressParams.push(tahun);
+        }
+        const [progressResult] = await pool.query(progressQuery, progressParams);
+        const onProgress = parseFloat(progressResult[0].onProgress || 0);
+        
+        // Query 4: Selesai
+        let selesaiQuery = `
+            SELECT COALESCE(SUM(k.nilai_kontrak), 0) AS selesai
+            FROM kontrak k
+            INNER JOIN pengajuan p ON k.id_pengajuan = p.id
+            INNER JOIN anggaran a ON p.id_anggaran = a.id
+            WHERE k.status_kontrak = 'Selesai'
+              AND k.nilai_kontrak IS NOT NULL
+        `;
+        let selesaiParams = [];
+        if (tahun) {
+            selesaiQuery += ` AND a.tahun_anggaran = ?`;
+            selesaiParams.push(tahun);
+        }
+        const [selesaiResult] = await pool.query(selesaiQuery, selesaiParams);
+        const selesai = parseFloat(selesaiResult[0].selesai || 0);
+        
+        // Log untuk debugging
+        console.log(`📊 Data Kontrak Tahun ${tahun}:`, {
+            totalPagu,
+            terkontrak,
+            onProgress,
+            selesai
+        });
+        
+        res.json({
+            totalPagu,
+            anggaran_terkontrak: {
+                terkontrak,
+                tersedia: Math.max(0, totalPagu - terkontrak)
+            },
+            kontrak_progress: {
+                onProgress,
+                selesai  // ✅ KEY "selesai"
+            },
+            anggaran_terserap: {
+                terserap: selesai,
+                tersisa: Math.max(0, totalPagu - selesai)
+            }
+        });
+        
+    } catch (error) {
+        console.error("❌ Error mengambil data kontrak:", error);
+        res.status(500).json({ 
+            message: "Terjadi kesalahan di server.", 
+            error: error.message 
+        });
+    }
+});
+
 
 
 app.post('/api/anggaran', protect, authorize('KKU', 'Admin'), async (req, res) => {
@@ -317,6 +431,7 @@ app.get('/api/pengajuan/:id', protect, async (req, res) => {
         res.status(500).json({ message: "Terjadi kesalahan di server." });
     }
 });
+
 
 // Fungsi bantuan untuk mencatat log
 const createLog = async (connection, id_pengajuan, status_baru, user_id, catatan = '') => {
@@ -490,8 +605,8 @@ app.put('/api/pengajuan/:id/pay', protect, authorize('KKU'), async (req, res) =>
             if (existingContract.length === 0) {
                 // Buat "pseudo-kontrak" menggunakan nilai RAB sebagai nilai realisasi
                 await connection.query(
-                    'INSERT INTO kontrak (id_pengajuan, nomor_kontrak, nama_vendor, nilai_kontrak) VALUES (?, ?, ?, ?)',
-                    [id, `KWITANSI-${id}`, 'User/Petty Cash', nilai_rab]
+                    'INSERT INTO kontrak (id_pengajuan, nomor_kontrak, nama_vendor, nilai_kontrak, status_kontrak) VALUES (?, ?, ?, ?, ?)',
+                    [id, `KWITANSI-${id}`, 'User/Petty Cash', nilai_rab, 'Selesai']
                 );
             }
         }
@@ -500,11 +615,25 @@ app.put('/api/pengajuan/:id/pay', protect, authorize('KKU'), async (req, res) =>
         const newStatus = 'Selesai Dibayar';
         await connection.query('UPDATE pengajuan SET status = ? WHERE id = ?', [newStatus, id]);
 
-        // 4. Catat log
-        await createLog(connection, id, newStatus, user_id, 'Pembayaran Lunas diproses oleh KKU.');
+        // 4. ✅ OTOMATIS UPDATE STATUS KONTRAK JADI "SELESAI"
+        const [kontrakUpdate] = await connection.query(
+            `UPDATE kontrak 
+             SET status_kontrak = 'Selesai'
+             WHERE id_pengajuan = ? AND (status_kontrak IS NULL OR status_kontrak != 'Selesai')`,
+            [id]
+        );
+
+        // Log untuk debugging
+        console.log(`✅ Pembayaran pengajuan #${id} - Status kontrak diupdate: ${kontrakUpdate.affectedRows} row(s)`);
+
+        // 5. Catat log
+        await createLog(connection, id, newStatus, user_id, 'Pembayaran Lunas diproses oleh KKU. Kontrak diselesaikan.');
 
         await connection.commit();
-        res.json({ message: 'Pembayaran berhasil diproses dan realisasi tercatat.' });
+        res.json({ 
+            message: 'Pembayaran berhasil diproses dan realisasi tercatat.',
+            kontrak_updated: kontrakUpdate.affectedRows 
+        });
 
     } catch (error) {
         if (connection) await connection.rollback();
@@ -514,6 +643,7 @@ app.put('/api/pengajuan/:id/pay', protect, authorize('KKU'), async (req, res) =>
         if (connection) connection.release();
     }
 });
+
 
 // ENDPOINT: User menginput detail Non-PO / Petty Cash
 app.put('/api/pengajuan/:id/verify-user', protect, authorize('User'), async (req, res) => {
@@ -1019,6 +1149,8 @@ app.post('/api/kontrak', protect, authorize('Pengadaan', 'Admin'), async (req, r
         if (connection) connection.release();
     }
 });
+
+
 
 // =================================================================
 //      ⬇️⬇️⬇️ API ENDPOINT UNTUK REVISI PENGADAAN ⬇️⬇️⬇️

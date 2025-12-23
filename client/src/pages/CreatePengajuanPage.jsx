@@ -17,6 +17,8 @@ const parseRupiahToNumber = (formatted) => {
 
 const CreatePengajuanPage = () => {
   const [masterAnggaran, setMasterAnggaran] = useState([]);
+  const [availableYears, setAvailableYears] = useState([]);
+  const [selectedTahun, setSelectedTahun] = useState(new Date().getFullYear());
   const [selectedJenisAnggaran, setSelectedJenisAnggaran] = useState('');
   const [filteredAnggaran, setFilteredAnggaran] = useState([]);
 
@@ -30,12 +32,41 @@ const CreatePengajuanPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Fetch daftar tahun anggaran
+  useEffect(() => {
+    const fetchYears = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:3001/api/anggaran/years', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const years = await response.json();
+          if (years.length > 0) {
+            setAvailableYears(years);
+            // Set tahun terbaru sebagai default
+            setSelectedTahun(years[0]);
+          } else {
+            setAvailableYears([new Date().getFullYear()]);
+          }
+        }
+      } catch (err) {
+        console.error("Gagal memuat tahun:", err);
+        setAvailableYears([new Date().getFullYear()]);
+      }
+    };
+    fetchYears();
+  }, []);
+
+  // Fetch master anggaran berdasarkan tahun
   useEffect(() => {
     const fetchAnggaran = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) { navigate('/login'); return; }
-        const response = await fetch('http://localhost:3001/api/master/anggaran', {
+        
+        const response = await fetch(`http://localhost:3001/api/master/anggaran?tahun=${selectedTahun}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -43,25 +74,32 @@ const CreatePengajuanPage = () => {
         setMasterAnggaran(data);
       } catch (err) { setError(err.message); }
     };
-    fetchAnggaran();
-  }, [navigate]);
+    
+    if (selectedTahun) {
+      fetchAnggaran();
+    }
+  }, [navigate, selectedTahun]);
 
+  // Filter anggaran berdasarkan jenis dan tahun
   useEffect(() => {
-    if (selectedJenisAnggaran) {
-      const filtered = masterAnggaran.filter(i => i.jenis_anggaran === selectedJenisAnggaran);
+    if (selectedJenisAnggaran && selectedTahun) {
+      const filtered = masterAnggaran.filter(i => 
+        i.jenis_anggaran === selectedJenisAnggaran && 
+        i.tahun_anggaran === selectedTahun
+      );
       setFilteredAnggaran(filtered);
       setIdAnggaran(filtered[0]?.id || '');
     } else {
       setFilteredAnggaran([]);
       setIdAnggaran('');
     }
-  }, [selectedJenisAnggaran, masterAnggaran]);
+  }, [selectedJenisAnggaran, selectedTahun, masterAnggaran]);
 
   // Nilai RAB handlers (tanpa minimal)
   const handleNilaiRabChange = (e) => {
     const next = formatRupiahInput(e.target.value);
     setNilaiRab(next);
-    setFieldError(prev => ({ ...prev, nilai_rab: '' })); // hapus pesan error jika ada
+    setFieldError(prev => ({ ...prev, nilai_rab: '' }));
   };
   const handleNilaiRabPaste = (e) => {
     e.preventDefault();
@@ -124,6 +162,10 @@ const CreatePengajuanPage = () => {
 
         {/* Ringkasan cepat */}
         <div className="summary-bar">
+          <div className="summary-item">
+            <span className="summary-label">Tahun Anggaran</span>
+            <span className="summary-value">{selectedTahun}</span>
+          </div>
           <div className="summary-item">
             <span className="summary-label">Jenis Anggaran</span>
             <span className="summary-value">{selectedJenisAnggaran || '—'}</span>
@@ -188,6 +230,22 @@ const CreatePengajuanPage = () => {
             <h3>Anggaran</h3>
           </div>
 
+          {/* DROPDOWN TAHUN */}
+          <div className="input-group">
+            <label htmlFor="tahun_anggaran_select">Tahun Anggaran</label>
+            <select
+              id="tahun_anggaran_select"
+              value={selectedTahun}
+              onChange={e => setSelectedTahun(parseInt(e.target.value))}
+              required
+            >
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* DROPDOWN JENIS ANGGARAN */}
           <div className="input-group">
             <label htmlFor="jenis_anggaran_select">Pilih Jenis Anggaran</label>
             <select
@@ -204,6 +262,7 @@ const CreatePengajuanPage = () => {
             {fieldError.jenis_anggaran && <div className="field-error">{fieldError.jenis_anggaran}</div>}
           </div>
 
+          {/* DROPDOWN PROGRAM KERJA */}
           {selectedJenisAnggaran && (
             <div className="input-group">
               <label htmlFor="id_anggaran">Pilih Program Kerja</label>
@@ -221,7 +280,9 @@ const CreatePengajuanPage = () => {
                     </option>
                   ))
                 ) : (
-                  <option value="" disabled>Tidak ada program kerja untuk jenis ini.</option>
+                  <option value="" disabled>
+                    Tidak ada program kerja {selectedJenisAnggaran} untuk tahun {selectedTahun}.
+                  </option>
                 )}
               </select>
               {fieldError.id_anggaran && <div className="field-error">{fieldError.id_anggaran}</div>}
