@@ -9,7 +9,7 @@ const { authorize } = require('./authorizeMiddleware');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 
 
 const transporter = nodemailer.createTransport({
@@ -1206,6 +1206,7 @@ app.get('/health', (req, res) => {
 });
 
 
-app.listen(PORT, () => {
-  console.log(`🚀 SIMONA BACKEND RUNNING ON PORT ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log('🚀 SERVER LISTENING ON', PORT);
 });
+
