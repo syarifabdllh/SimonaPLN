@@ -1201,6 +1201,11 @@ app.put('/api/pengajuan/:id/revise-pengadaan', protect, authorize('Pengadaan', '
     }
 });
 
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', message: 'Backend hidup' });
+});
+
+
 app.listen(PORT, () => {
   console.log(`🚀 SIMONA BACKEND RUNNING ON PORT ${PORT}`);
 });
