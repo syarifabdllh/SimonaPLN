@@ -4,11 +4,9 @@
   "description": "Backend for PLN Monitoring System",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
@@ -16,7 +14,6 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.9.7",
-    "nodemailer": "^7.0.7",
-    "nodemon": "^3.1.0"
+    "nodemailer": "^7.0.7"
   }
 }
